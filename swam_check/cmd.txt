@@ -54,6 +54,10 @@ http://localhost:9000/
 削除用 > docker container exec -it manager docker stack rm echo
 
 12.serviceクラスタ外からアクセスできるようにプロキシサーバーの設定を追加
- ch03-webapi.ymlを更新
+ch03-ingress.ymlを作成
+それに合わせて、ch03-webapi.ymlも更新
 
+docker container exec -it manager docker stack deploy -c /stack/ch03-webapi.yml echo
+docker container exec -it manager docker stack deploy -c /stack/ch03-ingress.yml ingress
 
+確認用 > docker container exec -it manager docker service ls
