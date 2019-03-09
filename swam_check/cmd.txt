@@ -29,3 +29,31 @@ docker container exec -it manager docker service scale echo=6
 確認用 > docker container exec -it manager docker service ps echo | grep Running
 削除用 > docker container exec -it manager docker service rm echo
 
+
+-------------------------------------------------------------------------------
+ここからstackを利用したserviceのグループ管理の作成
+想定として、フロントにnginxがあり、リバースプロキシとして動作
+
+8.serviceグループ管理用のoverlayネットワークを作成
+docker container exec -it manager docker network create --driver=overlay --attachable ch03
+
+9.stack実行用のymlファイルをstackディレクトリに作成
+ch03-webapi.yml
+
+10.ymlファイルを実行してstackを作成
+docker container exec -it manager docker stack deploy -c /stack/ch03-webapi.yml echo
+
+確認用 > docker container exec -it manager docker stack services echo
+         docker container exec -it manager docker stack ps echo
+
+11.visualizerを利用して、コンテナをlocalhostで見れるようにする
+docker container exec -it manager docker stack deploy -c /stack/visualizer.yml visualizer
+http://localhost:9000/
+※若干時間がかかる。5分程度？
+
+削除用 > docker container exec -it manager docker stack rm echo
+
+12.serviceクラスタ外からアクセスできるようにプロキシサーバーの設定を追加
+ ch03-webapi.ymlを更新
+
+
