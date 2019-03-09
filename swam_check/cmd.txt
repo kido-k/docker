@@ -1,0 +1,31 @@
+1.docker-compose.yamlでクラスタを作成
+dind(docker in docker)でregistryとmanagerとworker01～03のdockerを作成
+
+2.クラスタ管理用のmanager dockerをswarmに設定
+docker container exec -it manager docker swarm init
+
+joinトークンが発行されるので、これを利用してworker01～03を登録
+>docker swarm join --token SWMTKN-1-3pojcgq9bn86xine6eea4faph8s2s5hc7ibnu82azbp9u86rzu-1y7jd4m1c8ys6rul9ogxixawc 172.22.0.3:2377
+
+3.worker01～03のswarm管理
+docker container exec -it worker01 docker swarm join --token SWMTKN-1-3pojcgq9bn86xine6eea4faph8s2s5hc7ibnu82azbp9u86rzu-1y7jd4m1c8ys6rul9ogxixawc manager:2377
+docker container exec -it worker02 docker swarm join --token SWMTKN-1-3pojcgq9bn86xine6eea4faph8s2s5hc7ibnu82azbp9u86rzu-1y7jd4m1c8ys6rul9ogxixawc manager:2377
+docker container exec -it worker03 docker swarm join --token SWMTKN-1-3pojcgq9bn86xine6eea4faph8s2s5hc7ibnu82azbp9u86rzu-1y7jd4m1c8ys6rul9ogxixawc manager:2377
+※トークン後半のアドレスはname(manager)で置換
+
+4.dockerレジストリに過去に作成したdocker imageをプッシュする
+タグの作成 > docker image tag example/echo:latest localhost:5000/example/echo:latest
+実際にpush > docker image push localhost:5000/example/echo:latest
+
+5.worker01コンテナにregistryコンテナからdoker image をpullする
+docker container exec -it worker01 docker image pull registry:5000/example/echo:latest
+
+6.managerコンテナにserviceを作成
+docker container exec -it manager docker service create --replicas 1 --publish 8000:8080 --name echo registry:5000/example/echo:latest
+
+7.managerコンテナに登録したserviceをコンテナ6個に複製して実行
+docker container exec -it manager docker service scale echo=6
+
+確認用 > docker container exec -it manager docker service ps echo | grep Running
+削除用 > docker container exec -it manager docker service rm echo
+
