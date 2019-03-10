@@ -61,3 +61,6 @@ docker container exec -it manager docker stack deploy -c /stack/ch03-webapi.yml 
 docker container exec -it manager docker stack deploy -c /stack/ch03-ingress.yml ingress
 
 確認用 > docker container exec -it manager docker service ls
+
+13.curlを利用して、webapiの接続確認
+curl http://localhost:8000/
